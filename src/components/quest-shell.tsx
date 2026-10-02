@@ -10,7 +10,7 @@ export function QuestShell({ children, immersive = false }: { children: ReactNod
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5">
         <Link to="/" className="flex items-center gap-2 font-display text-lg text-primary sm:text-xl"><MoonStar className="size-6 shrink-0" /> AgrabahScribe<span className="hidden text-muted-foreground sm:inline">.</span></Link>
         <nav className="flex items-center gap-4 text-xs font-semibold uppercase text-muted-foreground sm:gap-7 sm:text-sm">
-          <Link to="/subjects" className="flex items-center gap-1.5 transition hover:text-primary"><ScrollText className="size-4" /> <span className="hidden sm:inline">The Library</span><span className="sm:hidden">Library</span></Link>
+    
           <Link to="/" className="flex items-center gap-1.5 transition hover:text-primary"><Compass className="size-4" /> <span className="hidden sm:inline">Traveler</span></Link>
         </nav>
       </div>

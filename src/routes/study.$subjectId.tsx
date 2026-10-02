@@ -1,36 +1,346 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, BookOpen, Check, CirclePlay, Clock3, Hourglass, Pause, Play, ScrollText, Sigma, Sparkles, Volume2, VolumeX, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  Coins,
+  Compass,
+  Flame,
+  Layers,
+  Sparkles,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { QuestShell, pageHead } from "@/components/quest-shell";
 import { QUEST_SUBJECTS, makePlan, useSubjectQuest } from "@/lib/quest";
 
-export const Route = createFileRoute("/study/$subjectId")({ head: ({ params }) => pageHead("Magic Carpet Study Arena", `Follow your personalized ${params.subjectId} study quest and conquer every topic.`), component: Study });
-type Vessel = "formula" | "notes" | "video";
-const vessels: { id: Vessel; name: string; icon: typeof Sigma; description: string }[] = [
-  { id: "formula", name: "Sacred Formula Tablet", icon: Sigma, description: "Key equations & reminders" },
-  { id: "notes", name: "Papyrus Short Notes", icon: ScrollText, description: "Quick topic study prompts" },
-  { id: "video", name: "Crystal Ball Video Lecture", icon: CirclePlay, description: "Find a focused lesson" },
+export const Route = createFileRoute("/study/$subjectId")({
+  head: ({ params }) =>
+    pageHead(
+      "Strategy Chamber",
+      `Choose your study persona and review your timetable for ${params.subjectId}.`
+    ),
+  component: StudyStrategy,
+});
+
+type StudyStyle = "nomad" | "vizier" | "sultan";
+
+interface StyleConfig {
+  id: StudyStyle;
+  title: string;
+  subtitle: string;
+  focusMinutes: number;
+  breakMinutes: number;
+  icon: typeof Zap;
+  color: string;
+}
+
+const STUDY_STYLES: StyleConfig[] = [
+  {
+    id: "nomad",
+    title: "The Desert Nomad",
+    subtitle: "25m rapid sprint · 5m oasis rest",
+    focusMinutes: 25,
+    breakMinutes: 5,
+    icon: Zap,
+    color: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+  },
+  {
+    id: "vizier",
+    title: "The Grand Vizier",
+    subtitle: "50m tactical depth · 10m recharge",
+    focusMinutes: 50,
+    breakMinutes: 10,
+    icon: Flame,
+    color: "border-primary/40 bg-primary/10 text-primary",
+  },
+  {
+    id: "sultan",
+    title: "The Sultan's Marathon",
+    subtitle: "90m mastery · 15m deep rest",
+    focusMinutes: 90,
+    breakMinutes: 15,
+    icon: Trophy,
+    color: "border-cyan-500/40 bg-cyan-500/10 text-cyan-400",
+  },
 ];
-const TOTAL = 45 * 60;
-function Study() {
-  const { subjectId } = Route.useParams(); const subject = QUEST_SUBJECTS.find((s) => s.id === subjectId);
-  const { config, updateConfig } = useSubjectQuest(subjectId);
-  const [vessel, setVessel] = useState<Vessel | null>(null); const [choosing, setChoosing] = useState(true);
-  const [current, setCurrent] = useState<string | null>(null); const [seconds, setSeconds] = useState(TOTAL); const [running, setRunning] = useState(false); const [sound, setSound] = useState(true);
-  const audio = useRef<AudioContext | null>(null);
-  useEffect(() => { if (!running) return; const interval = window.setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000); return () => window.clearInterval(interval); }, [running]);
-  useEffect(() => { if (seconds !== 0 || !running) return; setRunning(false); if (sound) { try { const ctx = new AudioContext(); audio.current = ctx; const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = "sine"; osc.frequency.setValueAtTime(880, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + .5); gain.gain.setValueAtTime(.12, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .7); osc.connect(gain).connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + .7); window.setTimeout(() => ctx.close(), 900); } catch { /* audio unavailable */ } } }, [seconds, running, sound]);
-  if (!subject) return <QuestShell><div className="mx-auto max-w-3xl px-5 py-24"><h1 className="font-display text-3xl">Scroll not found</h1><Link to="/subjects" className="mt-5 inline-block text-primary">Return to the Library</Link></div></QuestShell>;
-  const plan = makePlan(subject, config); const selected = plan.find((x) => x.key === current) ?? plan.find((x) => !x.conquered) ?? plan[0];
-  function select(key: string) { setCurrent(key); setSeconds(TOTAL); setRunning(false); }
-  function conquered() { if (!selected) return; updateConfig({ conquered: [...new Set([...config.conquered, selected.key])] }); setRunning(false); setSeconds(TOTAL); const next = plan.find((x) => x.key !== selected.key && !x.conquered); if (next) setCurrent(next.key); }
-  const format = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-  return <QuestShell><div className="mx-auto max-w-7xl px-5 pb-24 pt-10"><Link to="/triage/$subjectId" params={{ subjectId }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"><ArrowLeft className="size-4" /> Back to Oracle</Link>
-    <div className="mt-9 border-b border-border pb-9"><p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[.22em] text-primary"><Sparkles className="size-4" /> Chapter III · The journey</p><h1 className="font-display text-4xl sm:text-5xl">The Magic Carpet <span className="text-primary">Study Arena</span></h1><p className="mt-3 text-lg text-muted-foreground">{subject.name} · {config.hours} hours in your hourglass · {config.conquered.length}/{plan.length} topics conquered</p></div>
-    {plan.length === 0 ? <div className="mt-12 border border-dashed border-border p-10 text-center"><p>No topics on your map yet.</p><Link to="/triage/$subjectId" params={{ subjectId }} className="mt-4 inline-block text-primary">Choose your modules</Link></div> : <><div className="mt-10 grid gap-8 lg:grid-cols-[330px_1fr]"><aside><div className="mb-5 flex items-center justify-between"><h2 className="font-display text-2xl">Your quest map</h2><span className="text-xs text-primary">{plan.length} trials</span></div><div className="space-y-2 lg:max-h-[780px] lg:overflow-y-auto lg:pr-2">{plan.map((item, i) => <Button key={item.key} variant="outline" onClick={() => select(item.key)} className={`h-auto w-full items-start justify-start gap-3 whitespace-normal border p-3 text-left ${selected?.key === item.key ? "border-primary bg-primary/15" : "border-border bg-card/30"}`}><span className={`flex size-7 shrink-0 items-center justify-center border text-xs ${item.conquered ? "border-secondary bg-secondary/15 text-secondary" : "border-primary/40 text-primary"}`}>{item.conquered ? <Check className="size-4" /> : String(i + 1).padStart(2, "0")}</span><span className="flex-1"><span className="block text-sm font-medium leading-snug">{item.name}</span><span className="mt-1 block text-xs font-normal text-muted-foreground">{item.module} · {item.minutes} min · {item.difficulty}</span></span></Button>)}</div></aside>
-      <div className="grid gap-4 xl:grid-cols-2"><section className="glass-panel flex min-h-[440px] flex-col items-center justify-center p-6 text-center"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-primary"><Hourglass className="size-4" /> Focus hourglass</p><h2 className="max-w-sm font-display text-xl">{selected?.name}</h2><div className="relative my-8 flex size-56 items-center justify-center"><div className="absolute inset-0 rounded-full border border-primary/20 bg-primary/5 shadow-gold" /><svg viewBox="0 0 220 220" className="absolute inset-0 size-full -rotate-90"><circle cx="110" cy="110" r="99" fill="none" stroke="var(--muted)" strokeWidth="5" /><circle cx="110" cy="110" r="99" fill="none" stroke="var(--primary)" strokeWidth="5" strokeLinecap="round" strokeDasharray={622} strokeDashoffset={622 * (1 - seconds / TOTAL)} className="transition-all duration-1000" /></svg><div><span className="block font-display text-5xl tabular-nums text-primary">{format}</span><span className="mt-2 block text-xs uppercase tracking-[.2em] text-muted-foreground">{seconds === 0 ? "Focus complete" : running ? "In deep focus" : "Ready when you are"}</span></div></div><div className="flex flex-wrap items-center justify-center gap-2"><Button onClick={() => setRunning(!running)} disabled={seconds === 0} className="h-11 px-5">{running ? <><Pause /> Pause</> : <><Play /> {seconds === TOTAL ? "Begin focus" : "Resume"}</>}</Button><Button variant="outline" size="icon" onClick={() => setSound(!sound)} aria-label={sound ? "Mute chime" : "Enable chime"} title={sound ? "Mute chime" : "Enable chime"} className="h-11 w-11 border-border bg-card/40">{sound ? <Volume2 /> : <VolumeX />}</Button></div><Button variant="outline" onClick={conquered} className="mt-4 h-11 border-secondary/50 bg-secondary/10 px-6 text-secondary"><Check /> Mark Conquered</Button></section>
-      <section className="glass-panel min-h-[440px] p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-primary">Your learning vessel</p><h2 className="mt-2 font-display text-xl">{vessels.find((v) => v.id === vessel)?.name ?? "Choose a vessel"}</h2></div><Button variant="ghost" size="sm" onClick={() => setChoosing(true)} className="text-primary">Change</Button></div><div className="my-6 h-px bg-border" />{vessel === "formula" ? <div className="space-y-5">{subject.formulas.map((group) => <div key={group.title}><h3 className="mb-2 font-display text-base text-primary">{group.title}</h3><ul className="space-y-2">{group.items.map((formula) => <li key={formula} className="border-l-2 border-primary/40 bg-primary/5 px-3 py-2 font-mono text-sm leading-relaxed">{formula}</li>)}</ul></div>)}</div> : vessel === "notes" ? <div><h3 className="font-display text-xl text-primary">{selected?.name}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">A quick revision path for {selected?.module}:</p><ol className="mt-5 space-y-4 text-sm leading-relaxed"><li className="flex gap-3"><span className="text-primary">01</span> Write the core definition and key terms from your class notes.</li><li className="flex gap-3"><span className="text-primary">02</span> Work through one solved example or diagram without looking.</li><li className="flex gap-3"><span className="text-primary">03</span> Try a past-paper question, then check what you missed.</li></ol><p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">Use your course notes for subject-specific explanations.</p></div> : vessel === "video" ? <div><div className="flex aspect-video items-center justify-center border border-border bg-muted/40"><CirclePlay className="size-16 text-primary/70" /></div><p className="mt-5 text-sm text-muted-foreground">Find a focused lesson on {selected?.name}.</p><a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${subject.name} ${selected?.name} engineering lecture`)}`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">Search video lectures <ArrowUpRight className="size-4" /></a></div> : <div className="flex flex-col items-center py-14 text-center text-muted-foreground"><BookOpen className="mb-4 size-10 text-primary" /><p>Choose a learning vessel to reveal your resources.</p></div>}</section></div></div></>}
-  </div><AnimatePresence>{choosing && plan.length > 0 && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 p-5 backdrop-blur-md"><motion.div initial={{ opacity: 0, y: 20, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10 }} role="dialog" aria-modal="true" aria-label="Choose Your Learning Vessel" className="glass-panel relative w-full max-w-xl p-6 sm:p-9"><Button variant="ghost" size="icon" aria-label="Close" onClick={() => setChoosing(false)} className="absolute right-3 top-3 text-muted-foreground"><X /></Button><p className="text-xs font-bold uppercase tracking-[.2em] text-primary">Before the journey</p><h2 className="mt-3 font-display text-3xl">Choose Your Learning Vessel</h2><p className="mt-3 text-sm text-muted-foreground">How would you like to explore this scroll?</p><div className="mt-7 space-y-3">{vessels.map(({ id, name, icon: Icon, description }) => <Button key={id} variant="outline" onClick={() => { setVessel(id); setChoosing(false); }} className="h-auto w-full justify-start gap-4 border-border bg-card/40 p-4 text-left hover:border-primary hover:bg-primary/10"><span className="flex size-10 shrink-0 items-center justify-center border border-primary/30 text-primary"><Icon className="!size-5" /></span><span><span className="block font-display text-base">{name}</span><span className="mt-1 block text-xs font-normal text-muted-foreground">{description}</span></span></Button>)}</div></motion.div></motion.div>}</AnimatePresence></QuestShell>;
+
+const DIFFICULTY_METADATA = {
+  Cursed: { label: "Cursed (Hard)", bounty: 100, color: "border-red-500/40 bg-red-500/10 text-red-400" },
+  Sands: { label: "Sands (Moderate)", bounty: 75, color: "border-amber-500/40 bg-amber-500/10 text-amber-400" },
+  Oasis: { label: "Oasis (Easy)", bounty: 50, color: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" },
+};
+
+function StudyStrategy() {
+  const { subjectId } = Route.useParams();
+  const navigate = useNavigate();
+  const subject = QUEST_SUBJECTS.find((s) => s.id === subjectId);
+  const { config } = useSubjectQuest(subjectId);
+
+  // Persona State
+  const [selectedStyle, setSelectedStyle] = useState<StudyStyle>(() => {
+    return (localStorage.getItem(`persona_${subjectId}`) as StudyStyle) || "vizier";
+  });
+  const currentStyleConfig = STUDY_STYLES.find((s) => s.id === selectedStyle)!;
+
+  // Coverage State
+  const [coverageTarget, setCoverageTarget] = useState<"pass" | "full">(() => {
+    return (localStorage.getItem(`coverage_${subjectId}`) as "pass" | "full") || "full";
+  });
+
+  const handleSelectStyle = (id: StudyStyle) => {
+    setSelectedStyle(id);
+    localStorage.setItem(`persona_${subjectId}`, id);
+  };
+
+  const handleSelectCoverage = (target: "pass" | "full") => {
+    setCoverageTarget(target);
+    localStorage.setItem(`coverage_${subjectId}`, target);
+  };
+
+  if (!subject) {
+    return (
+      <QuestShell>
+        <div className="mx-auto max-w-3xl px-5 py-24 text-center">
+          <h1 className="font-display text-3xl">Scroll Not Found</h1>
+          <Link to="/subjects" className="mt-5 inline-block text-primary">
+            Return to the Library
+          </Link>
+        </div>
+      </QuestShell>
+    );
+  }
+
+  const rawPlan = makePlan(subject, config);
+
+  const normalizedPlan = rawPlan.map((item) => {
+    const rawDiff = (item.difficulty || "").toLowerCase();
+    let standardized: "Cursed" | "Sands" | "Oasis" = "Sands";
+    if (rawDiff.includes("hard") || rawDiff.includes("curse")) standardized = "Cursed";
+    else if (rawDiff.includes("easy") || rawDiff.includes("oasis")) standardized = "Oasis";
+
+    const meta = DIFFICULTY_METADATA[standardized];
+
+    return {
+      ...item,
+      normalizedDifficulty: standardized,
+      difficultyLabel: meta.label,
+      bountyAmount: meta.bounty,
+    };
+  });
+
+  let triageFiltered = [...normalizedPlan];
+  if (coverageTarget === "pass") {
+    const cursed = normalizedPlan.filter((t) => t.normalizedDifficulty === "Cursed");
+    const sands = normalizedPlan.filter((t) => t.normalizedDifficulty === "Sands");
+    const halfCount = Math.max(1, Math.ceil(normalizedPlan.length * 0.55));
+    triageFiltered = [...cursed, ...sands].slice(0, halfCount);
+  }
+
+  const totalUserHours = config.hours || 6;
+  const difficultyWeights = { Cursed: 3.0, Sands: 1.8, Oasis: 1.0 };
+  const weightedSum = triageFiltered.reduce(
+    (acc, cur) => acc + (difficultyWeights[cur.normalizedDifficulty] || 1.8),
+    0
+  );
+
+  const studyBlocks = triageFiltered.map((item) => {
+    const weight = difficultyWeights[item.normalizedDifficulty] || 1.8;
+    const computedMinutes = Math.max(
+      20,
+      Math.round(((weight / (weightedSum || 1)) * totalUserHours * 60) / 5) * 5
+    );
+    const intervalsNeeded = Math.max(1, Math.round(computedMinutes / currentStyleConfig.focusMinutes));
+
+    return {
+      ...item,
+      allocatedMinutes: computedMinutes,
+      intervalsCount: intervalsNeeded,
+    };
+  });
+
+  const totalAllocatedMinutes = studyBlocks.reduce((acc, b) => acc + b.allocatedMinutes, 0);
+
+  const proceedToArena = () => {
+    localStorage.setItem(`persona_${subjectId}`, selectedStyle);
+    localStorage.setItem(`coverage_${subjectId}`, coverageTarget);
+    navigate({ to: "/arena/$subjectId", params: { subjectId } });
+  };
+
+  return (
+    <QuestShell>
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 pb-28 pt-8">
+        <Link
+          to="/triage/$subjectId"
+          params={{ subjectId }}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition mb-6"
+        >
+          <ArrowLeft className="size-4" /> Back to Subject Oracle
+        </Link>
+
+        {/* Hero Section */}
+        <div className="bg-[#141B3D]/85 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-primary/30 shadow-2xl mb-8 relative overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                <Compass className="size-4" /> Step 1 · Study Strategy Chamber
+              </span>
+              <h1 className="font-display text-3xl sm:text-4xl text-white mt-1">
+                {subject.name}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Choose your focus rhythm and review your customized study timetable before entering the arena.
+              </p>
+            </div>
+
+            {/* Coverage Target Toggle */}
+            <div className="flex items-center gap-2 bg-black/50 p-1.5 rounded-xl border border-primary/20">
+              <span className="text-[11px] font-semibold text-muted-foreground pl-2 uppercase tracking-wider">
+                Target:
+              </span>
+              <button
+                onClick={() => handleSelectCoverage("pass")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  coverageTarget === "pass"
+                    ? "bg-amber-500 text-black shadow-md"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                50% High-Yield (Core Only)
+              </button>
+              <button
+                onClick={() => handleSelectCoverage("full")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  coverageTarget === "full"
+                    ? "bg-primary text-black shadow-md"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                100% Full Mastery
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 1: Focus Persona Selector */}
+        <div className="mb-10">
+          <h2 className="text-sm uppercase font-bold tracking-widest text-primary mb-4 flex items-center gap-2">
+            <Layers className="size-4" /> Choose Your Study Persona
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {STUDY_STYLES.map((style) => {
+              const Icon = style.icon;
+              const isSelected = selectedStyle === style.id;
+              return (
+                <button
+                  key={style.id}
+                  onClick={() => handleSelectStyle(style.id)}
+                  className={`p-5 rounded-2xl border text-left transition duration-200 flex flex-col justify-between ${
+                    isSelected
+                      ? `${style.color} ring-2 ring-primary shadow-xl scale-[1.02]`
+                      : "bg-[#141B3D]/50 border-primary/20 hover:border-primary/50 text-muted-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2.5 rounded-xl bg-black/50">
+                      <Icon className="size-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-base text-white">{style.title}</h3>
+                      <span className="font-mono text-xs text-primary font-semibold">
+                        {style.focusMinutes}m Sprint · {style.breakMinutes}m Rest
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {style.subtitle}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 2: Dedicated Timetable */}
+        <div className="bg-[#141B3D]/80 backdrop-blur-md rounded-2xl p-6 border border-primary/30 shadow-xl mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-primary/20 mb-5">
+            <div>
+              <h3 className="font-display text-xl text-white flex items-center gap-2">
+                <Clock className="size-5 text-primary" /> Dedicated Timetable & Block Schedule
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Calculated based on {totalUserHours} available hours. Harder topics receive larger blocks.
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-mono text-primary font-bold block">
+                Total: {Math.round(totalAllocatedMinutes / 60)} hrs {totalAllocatedMinutes % 60} mins
+              </span>
+              <span className="text-[11px] text-muted-foreground">{studyBlocks.length} Dedicated Blocks</span>
+            </div>
+          </div>
+
+          {/* Timetable List */}
+          <div className="space-y-3 max-h-[460px] overflow-y-auto pr-2">
+            {studyBlocks.map((block, idx) => (
+              <div
+                key={block.key}
+                className="p-4 rounded-xl bg-black/40 border border-primary/15 flex flex-wrap items-center justify-between gap-3 hover:border-primary/40 transition"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs font-bold text-primary px-2 py-1 rounded bg-primary/10 border border-primary/20">
+                    Block {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">{block.name}</h4>
+                    <span className="text-xs text-muted-foreground">{block.module}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-right">
+                  <span
+                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
+                      block.normalizedDifficulty === "Cursed"
+                        ? "border-red-500/40 bg-red-500/10 text-red-400"
+                        : block.normalizedDifficulty === "Sands"
+                        ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                        : "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                    }`}
+                  >
+                    {block.difficultyLabel}
+                  </span>
+
+                  <div>
+                    <span className="font-mono text-xs font-bold text-primary block">
+                      {block.allocatedMinutes} Mins
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {block.intervalsCount} × {currentStyleConfig.focusMinutes}m sprint
+                    </span>
+                  </div>
+
+                  <div className="pl-3 border-l border-primary/20 flex items-center gap-1 font-mono text-xs font-bold text-amber-300">
+                    <Coins className="size-3.5 text-amber-400" />
+                    +{block.bountyAmount}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Big Action Button to Advance */}
+        <div className="flex justify-end">
+          <Button
+            onClick={proceedToArena}
+            className="px-8 py-4 bg-gradient-to-r from-amber-500 via-primary to-amber-500 hover:opacity-95 text-black font-bold text-base rounded-2xl shadow-[0_0_30px_rgba(245,189,71,0.4)] flex items-center gap-2 transition"
+          >
+            Enter the Focus Arena <ArrowRight className="size-5" />
+          </Button>
+        </div>
+      </div>
+    </QuestShell>
+  );
 }

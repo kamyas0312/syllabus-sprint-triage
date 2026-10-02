@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as SubjectsRouteImport } from './routes/subjects'
+import { Route as ArenaSubjectIdRouteImport } from './routes/arena.$subjectId'
 import { Route as StudySubjectIdRouteImport } from './routes/study.$subjectId'
 import { Route as TriageSubjectIdRouteImport } from './routes/triage.$subjectId'
 
@@ -19,9 +21,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubjectsRoute = SubjectsRouteImport.update({
   id: '/subjects',
   path: '/subjects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArenaSubjectIdRoute = ArenaSubjectIdRouteImport.update({
+  id: '/arena/$subjectId',
+  path: '/arena/$subjectId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudySubjectIdRoute = StudySubjectIdRouteImport.update({
@@ -37,35 +49,61 @@ const TriageSubjectIdRoute = TriageSubjectIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/feedback': typeof FeedbackRoute
   '/subjects': typeof SubjectsRoute
+  '/arena/$subjectId': typeof ArenaSubjectIdRoute
   '/study/$subjectId': typeof StudySubjectIdRoute
   '/triage/$subjectId': typeof TriageSubjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/feedback': typeof FeedbackRoute
   '/subjects': typeof SubjectsRoute
+  '/arena/$subjectId': typeof ArenaSubjectIdRoute
   '/study/$subjectId': typeof StudySubjectIdRoute
   '/triage/$subjectId': typeof TriageSubjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/feedback': typeof FeedbackRoute
   '/subjects': typeof SubjectsRoute
+  '/arena/$subjectId': typeof ArenaSubjectIdRoute
   '/study/$subjectId': typeof StudySubjectIdRoute
   '/triage/$subjectId': typeof TriageSubjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/subjects' | '/study/$subjectId' | '/triage/$subjectId'
+  fullPaths:
+    | '/'
+    | '/feedback'
+    | '/subjects'
+    | '/arena/$subjectId'
+    | '/study/$subjectId'
+    | '/triage/$subjectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/subjects' | '/study/$subjectId' | '/triage/$subjectId'
+  to:
+    | '/'
+    | '/feedback'
+    | '/subjects'
+    | '/arena/$subjectId'
+    | '/study/$subjectId'
+    | '/triage/$subjectId'
   id:
-    '__root__' | '/' | '/subjects' | '/study/$subjectId' | '/triage/$subjectId'
+    | '__root__'
+    | '/'
+    | '/feedback'
+    | '/subjects'
+    | '/arena/$subjectId'
+    | '/study/$subjectId'
+    | '/triage/$subjectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FeedbackRoute: typeof FeedbackRoute
   SubjectsRoute: typeof SubjectsRoute
+  ArenaSubjectIdRoute: typeof ArenaSubjectIdRoute
   StudySubjectIdRoute: typeof StudySubjectIdRoute
   TriageSubjectIdRoute: typeof TriageSubjectIdRoute
 }
@@ -79,11 +117,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/subjects': {
       id: '/subjects'
       path: '/subjects'
       fullPath: '/subjects'
       preLoaderRoute: typeof SubjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arena/$subjectId': {
+      id: '/arena/$subjectId'
+      path: '/arena/$subjectId'
+      fullPath: '/arena/$subjectId'
+      preLoaderRoute: typeof ArenaSubjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/study/$subjectId': {
@@ -105,7 +157,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FeedbackRoute: FeedbackRoute,
   SubjectsRoute: SubjectsRoute,
+  ArenaSubjectIdRoute: ArenaSubjectIdRoute,
   StudySubjectIdRoute: StudySubjectIdRoute,
   TriageSubjectIdRoute: TriageSubjectIdRoute,
 }
