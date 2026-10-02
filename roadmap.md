@@ -1,0 +1,3 @@
+- [ ] Replace the current study page with AgrabahScribe onboarding, library, triage and study arena.
+- [ ] Add seven Semester 1 subjects, local progress, weighted quest map and focus tools.
+- [ ] Verify the complete onboarding-to-study flow in the browser.
