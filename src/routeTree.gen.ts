@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubjectsRouteImport } from './routes/subjects'
+import { Route as StudySubjectIdRouteImport } from './routes/study.$subjectId'
 import { Route as TriageSubjectIdRouteImport } from './routes/triage.$subjectId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const SubjectsRoute = SubjectsRouteImport.update({
   path: '/subjects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudySubjectIdRoute = StudySubjectIdRouteImport.update({
+  id: '/study/$subjectId',
+  path: '/study/$subjectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TriageSubjectIdRoute = TriageSubjectIdRouteImport.update({
   id: '/triage/$subjectId',
   path: '/triage/$subjectId',
@@ -32,30 +38,35 @@ const TriageSubjectIdRoute = TriageSubjectIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/subjects': typeof SubjectsRoute
+  '/study/$subjectId': typeof StudySubjectIdRoute
   '/triage/$subjectId': typeof TriageSubjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/subjects': typeof SubjectsRoute
+  '/study/$subjectId': typeof StudySubjectIdRoute
   '/triage/$subjectId': typeof TriageSubjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/subjects': typeof SubjectsRoute
+  '/study/$subjectId': typeof StudySubjectIdRoute
   '/triage/$subjectId': typeof TriageSubjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/subjects' | '/triage/$subjectId'
+  fullPaths: '/' | '/subjects' | '/study/$subjectId' | '/triage/$subjectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/subjects' | '/triage/$subjectId'
-  id: '__root__' | '/' | '/subjects' | '/triage/$subjectId'
+  to: '/' | '/subjects' | '/study/$subjectId' | '/triage/$subjectId'
+  id:
+    '__root__' | '/' | '/subjects' | '/study/$subjectId' | '/triage/$subjectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SubjectsRoute: typeof SubjectsRoute
+  StudySubjectIdRoute: typeof StudySubjectIdRoute
   TriageSubjectIdRoute: typeof TriageSubjectIdRoute
 }
 
@@ -75,6 +86,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/study/$subjectId': {
+      id: '/study/$subjectId'
+      path: '/study/$subjectId'
+      fullPath: '/study/$subjectId'
+      preLoaderRoute: typeof StudySubjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/triage/$subjectId': {
       id: '/triage/$subjectId'
       path: '/triage/$subjectId'
@@ -88,6 +106,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SubjectsRoute: SubjectsRoute,
+  StudySubjectIdRoute: StudySubjectIdRoute,
   TriageSubjectIdRoute: TriageSubjectIdRoute,
 }
 export const routeTree = rootRouteImport
