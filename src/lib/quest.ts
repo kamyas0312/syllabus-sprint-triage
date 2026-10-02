@@ -36,7 +36,7 @@ const extra: QuestSubject[] = [
   ], formulas: [{ title: "Programming reminders", items: ["Binary search: O(log n), sorted input", "Linear search: O(n)", "Array index range: 0 to n − 1"] }] },
 ];
 export const QUEST_SUBJECTS: QuestSubject[] = [
-  ...SUBJECTS.map((s, i) => ({ ...s, short: ["Math-I", "Physics", "BEE"][i], icon: ["sigma", "atom", "bolt"][i], modules: s.modules.length === 5 ? s.modules : [...s.modules, mod(`${s.id}-5`, s.id === "phy" ? "Modern Physics & Materials" : "Electrical Safety & Applications", s.id === "phy" ? ["Crystal structures", "Nanomaterials", "Superconductivity basics"] : ["Earthing and protection", "Electrical wiring basics", "Energy efficiency"])] })),
+  ...SUBJECTS.map((s, i) => ({ ...s, short: ["Math-I", "Physics", "BEE"][i] ?? s.name, icon: ["sigma", "atom", "bolt"][i] ?? "sigma", modules: s.modules.length === 5 ? s.modules : [...s.modules, mod(`${s.id}-5`, s.id === "phy" ? "Modern Physics & Materials" : "Electrical Safety & Applications", s.id === "phy" ? ["Crystal structures", "Nanomaterials", "Superconductivity basics"] : ["Earthing and protection", "Electrical wiring basics", "Energy efficiency"])] })),
   ...extra,
 ];
 

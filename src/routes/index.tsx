@@ -14,7 +14,7 @@ const personas = [
 ];
 function Onboarding() {
   const { state, update, ready } = useQuest();
-  const [name, setName] = useState(""); const [branch, setBranch] = useState("COMPS"); const [persona, setPersona] = useState(personas[0].name);
+  const [name, setName] = useState(""); const [branch, setBranch] = useState("COMPS"); const [persona, setPersona] = useState("Genie's Scholar");
   const [touched, setTouched] = useState(false);
   const navigate = useNavigate();
   function submit(e: FormEvent) { e.preventDefault(); setTouched(true); if (!name.trim()) return; update({ ...state, name: name.trim(), branch, persona }); navigate({ to: "/subjects" }); }
